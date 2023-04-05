@@ -33,7 +33,7 @@ int main() {
     thread_create(&tid2, f, &arg2);
 
     sleep(1); 
-    printf("thread_id %d\n", tid1); //printing twice? //locks?
+    printf("thread__id %d\n", tid1);
     
     int ret = thread_kill(tid1, SIGINT);
     printf("return value %d\n", ret);
