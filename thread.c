@@ -5,11 +5,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <ucontext.h>
-#include <sys/syscall.h>
 #include "thread.h"
+#include <syscall.h>
 
 extern ucontext_t main_ctx;
-
 int no = 0;
 
 
@@ -41,10 +40,11 @@ int thread_join(myth_t thread) {
 }
 
 void thread_exit() {
-  int tid = syscall(SYS_gettid);
+  int cur_tid = gettid();  //?
+  printf("Founded tid : %d\n",cur_tid);
   int index = -1;
   for (int i = 0; i < no; i++) {
-    if (allthread[i].tid == tid) {
+    if (allthread[i].tid == cur_tid) {
       index = i;
       break;
     }
@@ -57,10 +57,33 @@ void thread_exit() {
       allthread[i] = allthread[i+1];
     }
     no--;
-    setcontext(&main_ctx);
-    
-  }else{
-  	exit(0);  
+    setcontext(&main_ctx); //?
+  }
+  else {
+    exit(0); //?
   }
   
+}
+
+int thread_kill(int tid, int signal) {
+  int index = -1;
+  for (int i = 0; i < no; i++) {
+    if (allthread[i].tid == tid) {
+     // printf("All threads %d\n",allthread[i].tid);
+      index = i;
+      break;
+    }
+  }
+  if (index == -1) {
+    return -1; // couldnt find -1 is returned 
+  }
+  //printf("%d %d %d\n",tid,tgid,ntid);
+  int tgid = tid; // for one one 
+  int ret = tgkill(tgid, tid, signal);
+  
+  if (ret == -1) {
+    perror("tgkill failed");
+  }
+  
+  return ret;
 }

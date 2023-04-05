@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "thread_n.h": "c",
+        "signal.h": "c"
+    }
+}
