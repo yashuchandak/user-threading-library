@@ -29,8 +29,8 @@ int main() {
     myth_t tid1, tid2;
     int arg1 = 10, arg2 = 11;
 
-    thread_create(&tid1, f, &arg);
-    thread_create(&tid2, f, &arg);
+    thread_create(&tid1, f, &arg1);
+    thread_create(&tid2, f, &arg2);
 
     sleep(1); 
     printf("thread_id %d\n", tid1); //printing twice? //locks?
