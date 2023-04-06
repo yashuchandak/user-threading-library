@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <ucontext.h>
 
 #include "thread.h"
 
@@ -31,19 +32,27 @@ void enqueue(queue *q, myth_thread thread) {
     q->rear = nn;
 }
 
-myth_thread dequeue(queue *q) {
+myth_thread *dequeue(queue *q) {
     if(!q->head) {
         
     }
 
 }
 
+//ready queue
+queue q;
 
-
-scheduler () {
+int scheduler(int sched_case) {
     // manle sirf runnable aur running do state hai. ? 
     // timer interrupt, runnable ki queue me se context uthao aur purana context q ke end pe dal do
     // thread exit, queue me se vo node delete aur naya context lelo
+    
+    ucontext_t *new = &( (dequeue(&q))->context);
+
+    if(sched_case == 1) { //timer interrupt
+    }
+    elif(sched_case == 2) { //thread_exit
+    }
 }
 
 void thread_exit() {
