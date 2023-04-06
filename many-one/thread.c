@@ -49,7 +49,7 @@ int scheduler(int sched_case) {
     // timer interrupt, runnable ki queue me se context uthao aur purana context q ke end pe dal do (swap context)
     // thread exit, queue me se vo node delete aur naya context lelo
     
-    // get scheduler context and swap with below new context 
+    // get current context and swap with below new context 
     ucontext_t new = (dequeue(&q))->context;
 
     if(sched_case == 1) { //timer interrupt
