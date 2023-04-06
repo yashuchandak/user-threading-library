@@ -19,15 +19,15 @@ void wrapper(int (*fn) (void *), void *arg) {
 myth_t thread_create(myth_t *thread, int (*fn) (void *), void *arg) {
   int tid;
   char *stack = malloc(4096);
-  tid = clone(fn, stack + 4096, 0, arg);
+  tid = clone(fn, stack + 4096, 0, arg); //clone hone ke baad sidha run hone lagti. get context se ip set kiska thread vale func ka, apne aap change hota?
   *thread = tid;
   printf("thread id = %d\n", *thread);
 
-  getcontext(&allthread[no].context); //clone hone ke baad sidha run hone lagti. get context se ip set kiska thread vale func ka, apne aap change hota?
-  allthread[no].context.uc_stack.ss_sp = stack;
+  getcontext(&allthread[no].context); 
+  allthread[no].context.uc_stack.ss_sp = stack; // sahi hai
   allthread[no].context.uc_stack.ss_size = 4096;
   allthread[no].context.uc_link = &main_ctx;
-  // makecontext(&allthread[no].context, (void (*) (void)) wrapper, 2, fn, arg); // makecontext(&allthread[no].context, (void (*) (void)) wrapper, 2, fn, arg); //?  //jb agli bar ye context set ho to ue function chalao; lekin ye specify karne ki kya jarurat context ke ip pe se yahi run hone wala hai na? one one me jarurat nhi
+  // makecontext(&allthread[no].context, (void (*) (void)) wrapper, 2, fn, arg); //?  //jb agli bar ye context set ho to ue function chalao; lekin ye specify karne ki kya jarurat context ke ip pe se yahi run hone wala hai na? one one me jarurat nhi
 
   allthread[no].tid = tid;
   no++;
