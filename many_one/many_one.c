@@ -64,7 +64,7 @@ myth_Node *delete() {
     }
     else
     {
-        head->prev = NULL;
+        // head->prev = NULL;
     }
 
     return temp;
@@ -125,16 +125,32 @@ int scheduler(int sched_case) {
         exit(0); //main pura chalega?
     }
     else {
-        myth_Node * tempNode = delete();
-        ucontext_t new = tempNode->context;
-        ucontext_t *temp = cur_ctx;
-        cur_ctx = &new;
+        myth_Node * tempNode = delete(); // idhar 4th node milegi
         
+        // printf("%dhi\n", tempNode->tid);
+
+        // apppended 4th node
+        // tail->next = tempNode;
+        // tail = tempNode;
+        // tail->next = NULL;
+
+        //append 3rd node
+        myth_Node *pass = tempNode->prev;
+        pass->next = pass->prev = NULL;
+        
+        // printf("%d tempnode->prev->tid\n", pass->tid);
+        append(pass); 
+        
+        ucontext_t new = tempNode->context;
+        ucontext_t *cur_ctx_copy = cur_ctx;
+        cur_ctx = &new;
+
         if(sched_case == 1) { //timer interrupt
             // timer begin timer ki jarurat nhi, apne aap refresh?
-            tempNode->prev->next = NULL;
-            append(tempNode->prev);
-            // swapcontext(temp, &new);
+            
+            // swapcontext(cur_ctx_copy, &(tempNode->context));
+            
+
             setcontext(&new);
         }
         else if(sched_case == 2) { //thread_exit
