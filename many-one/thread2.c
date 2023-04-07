@@ -19,14 +19,14 @@ typedef struct queue {
     node *rear;
 }queue;
 
-queue *q;
+queue q;
 // = (queue *)malloc(sizeof(queue));
 int tid = 0;
 
 ucontext_t *cur_ctx;
 
 void init() {
-    q->head = q->rear = NULL;
+    q.head = q.rear = NULL;
 }
 
 void enqueue(myth_thread *thread) {
@@ -34,27 +34,27 @@ void enqueue(myth_thread *thread) {
     nn->next = NULL;
     nn->thread = thread;
 
-    if(!q->head) {
+    if(!q.head) {
         init();
         printf("first enqueu\n");
-        q->head = q->rear = nn;
+        q.head = q.rear = nn;
         return;
     }
 
-    q->rear->next = nn;
-    q->rear = nn;
+    q.rear->next = nn;
+    q.rear = nn;
 }
 
 myth_thread *dequeue() {
-    printf("%d\n", q->head->thread->tid);
-    if(!q->head) {
+    printf("%d\n", q.head->thread->tid);
+    if(!q.head) {
     
     }
     
-    node *temp = q->head;
+    node *temp = q.head;
     if(temp!=NULL)
         printf("hellp\n");
-    q->head = q->head->next;
+    q.head = q.head->next;
     
     return temp->thread;
 }
