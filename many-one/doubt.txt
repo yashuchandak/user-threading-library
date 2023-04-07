@@ -1,5 +1,0 @@
-many one me , thread 1 running (infinite loop), thread2 lekin chalra
-
-many one me ek time pe ek hi thread run kar sakti kya?
-
-to locks necessary kya?

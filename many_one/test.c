@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <ucontext.h>
 #include <unistd.h> 
-#include "thread.h"
+#include "many_one.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -10,7 +10,6 @@
 
 ucontext_t main_ctx;
 int x = 20;
-myth_thread allthread[128];
 
 void f1(void *arg) {
     
