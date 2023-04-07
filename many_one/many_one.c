@@ -1,11 +1,41 @@
 #include "many_one.h"
 
+
 myth_t tid = 0;
 extern ucontext_t main_ctx;
 myth_Node * head = NULL;
 myth_Node * tail = NULL;
  
 ucontext_t *cur_ctx;
+
+struct itimerval timer;
+
+// alarm signal raise hone pe timer purane timer ko end aur scheuler
+void sig_alarm_handler(int sig) {
+    //scheduler ko call 
+    printf("in timer handler\n");
+    scheduler(1);
+}
+
+void begin_timer()
+{
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 500; // 0.5 millisecs
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 500;
+    setitimer(ITIMER_REAL, &timer, NULL);
+    // printf("%d\n", timer.it_value.tv_usec);
+}
+
+void end_timer()
+{
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 0;
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 0;
+    setitimer(ITIMER_REAL, &timer, NULL);
+    
+}
 
 void append(myth_Node * Node){
     if(!head)
@@ -16,33 +46,40 @@ void append(myth_Node * Node){
     else
     {
         tail->next = Node;
+        Node->prev = tail;
         tail = Node;
     }
 }
 
 
 myth_Node *delete() {
-  if (!head) {
+    if (!head) {
+        return NULL;
+    }
+    myth_Node *temp = head;
+    head = head->next;
+    
+    if (!head) {
+        tail = NULL;
+    }
+    else
+    {
+        head->prev = NULL;
+    }
 
-  }
-  myth_Node *temp = head;
-  head = head->next;
-  
-  if (!head) {
-    tail = NULL;
-  }
-
-  return temp;
+    return temp;
 }
 
 int first_create = 0;
 
 // thread_create
 myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
-  
+    
+    // signal(SIGALRM, sig_alarm_handler);
+
     myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
     nn->next = NULL;
-    // nn->prev = NULL;
+    nn->prev = NULL;
     nn->tid = tid++;
     nn->args = args;
     void *stack = malloc(4096);
@@ -59,6 +96,8 @@ myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
 
     if(!first_create) {
         first_create = 1;
+        // begin timer
+        begin_timer();
         clone((int *)*fn , stack + 4096, CLONE_VM, args);
     }
     else {
@@ -83,18 +122,24 @@ int scheduler(int sched_case) {
     //? //The getcontext() function initializes the structure pointed to by ucp to the current user context of the calling process.
     
     if(!head) {
-        exit(0);
+        exit(0); //main pura chalega?
     }
     else {
-        ucontext_t new = delete()->context;
-        
+        myth_Node * tempNode = delete();
+        ucontext_t new = tempNode->context;
         ucontext_t *temp = cur_ctx;
         cur_ctx = &new;
         
         if(sched_case == 1) { //timer interrupt
-            swapcontext(temp, &new);
+            // timer begin timer ki jarurat nhi, apne aap refresh?
+            tempNode->prev->next = NULL;
+            append(tempNode->prev);
+            // swapcontext(temp, &new);
+            setcontext(&new);
         }
         else if(sched_case == 2) { //thread_exit
+            // timer begin
+            begin_timer();
             setcontext(&new);
         }
     }
@@ -103,13 +148,16 @@ int scheduler(int sched_case) {
 void thread_exit() {
     // ye thread ko list me se hata do, aur scheduler ko call karo
     // jo thread run ho rahi vo hi exit maregi
+    
+    // timer end
+    end_timer();
+
     scheduler(2);
 
 }
 
 int thread_join(myth_t thread) {
   int ret = waitpid(thread, NULL, __WALL); // wait for any child 
-  printf("waitpid return %d\n", ret);
   return 0;
 }
 
