@@ -1,12 +1,11 @@
 #include "many_one.h"
 
-static myth_t tid = 0;  //global
+myth_t tid = 0;
 extern ucontext_t main_ctx;
 myth_Node * head = NULL;
 myth_Node * tail = NULL;
  
 ucontext_t *cur_ctx;
-
 
 void append(myth_Node * Node){
     if(!head)
@@ -17,31 +16,22 @@ void append(myth_Node * Node){
     else
     {
         tail->next = Node;
-        Node->prev = tail;
         tail = Node;
     }
 }
 
-void traverse()
-{
-    while (head)
-    {
-        head = head->next;
-    }
-    
-}
 
 myth_Node *delete() {
   if (!head) {
-    return NULL;
+
   }
   myth_Node *temp = head;
   head = head->next;
-  if (head) {
-    head->prev = NULL;
-  } else {
+  
+  if (!head) {
     tail = NULL;
   }
+
   return temp;
 }
 
@@ -52,21 +42,13 @@ myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
   
     myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
     nn->next = NULL;
-    nn->prev = NULL;
+    // nn->prev = NULL;
     nn->tid = tid++;
     nn->args = args;
     void *stack = malloc(4096);
     nn->stack = stack;
     nn->f = fn;
-    // node *nn = (node *)malloc(sizeof(node));
-    // thr.tid = tid;
-    // tid++;
-
-    // thr.args = args; 
-    // void *stack = malloc(4096);
-    // thr.stack = stack;
-    // thr.f = fn;
-
+  
     getcontext(&(nn->context)); //?
     nn->context.uc_stack.ss_sp = stack; // sahi hai
     nn->context.uc_stack.ss_size = 4096;
@@ -99,20 +81,22 @@ int scheduler(int sched_case) {
     // get current context (with getcontext) and swap with below new context 
     
     //? //The getcontext() function initializes the structure pointed to by ucp to the current user context of the calling process.
-    ucontext_t new = delete()->context;
-    //  printf("%d\n",delete()->tid);
-    ucontext_t *temp = cur_ctx;
-    cur_ctx = &new;
-
-    // printf("in scheduler\n");
-
-    if(sched_case == 1) { //timer interrupt
-       // printf("sched_case1\n");
-        swapcontext(temp, &new);
+    
+    if(!head) {
+        exit(0);
     }
-    else if(sched_case == 2) { //thread_exit
-        //printf("from exit\n");
-        setcontext(&new);
+    else {
+        ucontext_t new = delete()->context;
+        
+        ucontext_t *temp = cur_ctx;
+        cur_ctx = &new;
+        
+        if(sched_case == 1) { //timer interrupt
+            swapcontext(temp, &new);
+        }
+        else if(sched_case == 2) { //thread_exit
+            setcontext(&new);
+        }
     }
 }
 
@@ -124,7 +108,8 @@ void thread_exit() {
 }
 
 int thread_join(myth_t thread) {
-  waitpid(thread, NULL, __WALL); // wait for any child 
+  int ret = waitpid(thread, NULL, __WALL); // wait for any child 
+  printf("waitpid return %d\n", ret);
   return 0;
 }
 

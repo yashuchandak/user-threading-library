@@ -48,10 +48,10 @@ void f3(void *arg) {
     
     printf("thread3 running\n");
 
-    while (1)
-    {
-        /* code */
-    }
+    // while (1)
+    // {
+    //     /* code */
+    // }
 
     printf("thread3 exiting\n");
 
@@ -84,7 +84,7 @@ int main() {
     thread_create(&tid2, f2, &arg2);
     thread_create(&tid3, f3, &arg1);
     thread_create(&tid4, f4, &arg2);
-    sleep(1); 
+    // sleep(1); 
     
     
     thread_join(tid1);
