@@ -18,6 +18,8 @@ typedef struct myth_Node{
   myth_t tid;
   void *stack;
   void *args;
+  int status;
+  int timer;
   void *(*f)(void *);
   ucontext_t context;
   struct myth_Node * next;
@@ -34,7 +36,7 @@ void append(myth_Node * Node);
 myth_Node * traverse(ucontext_t temp);
 myth_Node *  delete();
 myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args);
-int scheduler(int sched_case) ;
+void scheduler() ;
 void thread_exit() ;
 int thread_join(myth_t thread);
 void sig_alarm_handler(int sig);

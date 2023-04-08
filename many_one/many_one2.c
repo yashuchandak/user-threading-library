@@ -78,7 +78,7 @@ int first_create = 0;
 myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
     
     // signal(SIGALRM, sig_alarm_handler);
-
+    
     myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
     nn->next = NULL;
     nn->prev = NULL;
@@ -111,7 +111,7 @@ myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
     return nn->tid;
 }
 
-int scheduler(int sched_case) {
+void scheduler(int sched_case) {
 
     //printf("in scheduler\n");
     
@@ -130,18 +130,21 @@ int scheduler(int sched_case) {
     else {
         myth_Node *newNode = delete();
         ucontext_t new_context = newNode->context;
-        // ucontext_t *temp = (ucontext_t *)malloc(sizeof(ucontext_t));
+        
         ucontext_t temp = cur_ctx;
         cur_ctx = new_context;
         
+        // ucontext_t temp ;
+        // getcontext(&temp);
+
         if(sched_case == 1) { //timer interrupt
             // timer begin timer ki jarurat nhi, apne aap refresh?
-            newNode->prev->next = NULL;
-            newNode->prev->context = temp;
-            append(newNode->prev);
+            newNode->next = NULL;
+            // newNode->prev->context = temp;
+            append(newNode);
             // swapcontext(temp, &new);
-            // swapcontext(temp, tempNode->context);
-            setcontext(&new_context);
+            swapcontext(&temp, &tail->context);
+            // setcontext(&new_context);
         }
         else if(sched_case == 2) { //thread_exit
             // timer begin
