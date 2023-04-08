@@ -11,7 +11,7 @@
 ucontext_t main_ctx;
 int x = 20;
 
-void f1(void *arg) {
+void *f1(void *arg) {
     
     int p = *(int *)arg;
     // printf("%d x= %d\n", p, x);
@@ -27,7 +27,7 @@ void f1(void *arg) {
     thread_exit();
 }
 
-void f2(void *arg) {
+void *f2(void *arg) {
     int p = *(int *)arg;
     // printf("%d x= %d\n", p, x);
     
@@ -46,7 +46,7 @@ void f2(void *arg) {
     thread_exit();
 }
 
-void f3(void *arg) {
+void *f3(void *arg) {
     int p = *(int *)arg;
     // printf("%d x= %d\n", p, x);
     
@@ -63,7 +63,7 @@ void f3(void *arg) {
     thread_exit();
 }
 
-void f4(void *arg) {
+void *f4(void *arg) {
     int p = *(int *)arg;
     // printf("%d x= %d\n", p, x);
     
@@ -80,7 +80,7 @@ void f4(void *arg) {
     thread_exit();
 }
 
-void f5(void *arg) {
+void *f5(void *arg) {
     int p = *(int *)arg;
     // printf("%d x= %d\n", p, x);
     

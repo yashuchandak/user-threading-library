@@ -1,23 +1,16 @@
 #include "many_one.h"
 
+void end_timer();
 int tid = 0;
 int isFirst = 0;
-myth_Node * head = NULL;
-myth_Node * temp = NULL;
-myth_Node * curr = NULL;
-myth_Node * tail = NULL;
+myth_Node *head = NULL;
+myth_Node *temp = NULL;
+myth_Node *curr = NULL;
+myth_Node *tail = NULL;
 
 ucontext_t sch_ctx;
 
 struct itimerval timer;
-
-void sig_alarm_handler(int sig) {
-    printf("In signal handler\n");
-    end_timer();
-    curr->status = 1;
-    // scheduler();
-    swapcontext(&curr->context,&sch_ctx);
-}
 
 void begin_timer()
 {
@@ -39,6 +32,14 @@ void end_timer()
     
 }
 
+void sig_alarm_handler(int sig) {
+    printf("In signal handler\n");
+    end_timer();
+    curr->status = 1;
+    // scheduler();
+    swapcontext(&curr->context, &sch_ctx);
+}
+
 myth_Node * allocNode(int *thread, void *(*fn) (void *), void *args)
 {
     myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
@@ -58,7 +59,7 @@ void append(myth_Node * Node){
     {
         head = Node;
         tail = Node;
-        Node ->next = Node;
+        Node->next = Node;
         temp = head;
     }
     else
@@ -70,54 +71,57 @@ void append(myth_Node * Node){
     }
 }
 
+
 int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
 {
+    
     signal(SIGALRM, sig_alarm_handler);
-    myth_Node * new = allocNode(thread,fn,args);
-    getcontext(&(new->context)); //?
-    new->context.uc_stack.ss_sp = new->stack; // sahi hai
+    myth_Node * new = allocNode(thread, fn, args);
+    getcontext(&(new->context)); //correct hmm?
+    new->context.uc_stack.ss_sp = new->stack;
     new->context.uc_stack.ss_size = 4096;
-    new->context.uc_link = &sch_ctx; //?
-    makecontext(&(new->context), *fn, 1, args);
+    new->context.uc_link = &sch_ctx; 
+    makecontext(&(new->context), (void(*)())fn, 1, args);
+    
     append(new);
     if(!isFirst)
     {
         isFirst = 1;
         void * sch_stack = malloc(4096);
-        clone(scheduler,sch_stack+4096,CLONE_VM,NULL);
+        clone(scheduler, sch_stack+4096, CLONE_VM, NULL);
     }
 }
 
 myth_Node * checkRunable ()
 {
-    curr=temp;
+    curr = temp;
     do{
-        if(curr->status==1){
-            temp=curr->next;
+        if(curr->status == 1){
+            temp = curr->next;
             return curr;
         }
-        curr=curr->next;
-    }while(temp!=curr);
-    if(temp->status==1) return temp;
+        curr = curr->next;
+    }while(temp != curr);
+    
     return NULL;
 }
 
-void scheduler()
+int scheduler()
 {
     
     getcontext(&sch_ctx);
     while(1)
     {
-        // printf("IN sche\n");
-        myth_Node *tnode = checkRunable();
+        printf("In scheduler\n");
+        myth_Node * tnode = checkRunable();
+        
         if(!tnode)
         {
-            // printf("!tnode\n");
+            
         }
         else
         {
             begin_timer();
-            curr->context = tnode->context;
             swapcontext(&sch_ctx, &tnode->context); //timer int //1st isme current ctx save kardenga
         }
     }
@@ -131,5 +135,12 @@ void thread_exit()
 
 int thread_join(myth_t thread) {
   int ret = waitpid(thread, NULL, __WALL); // wait for any child 
+  return 0;
+}
+
+int thread_kill(int tid, int signal) {
+  
+  
+  
   return 0;
 }

@@ -36,7 +36,7 @@ void append(myth_Node * Node);
 myth_Node * traverse(ucontext_t temp);
 myth_Node *  delete();
 myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args);
-void scheduler() ;
+int scheduler() ;
 void thread_exit() ;
 int thread_join(myth_t thread);
 void sig_alarm_handler(int sig);

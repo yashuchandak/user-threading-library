@@ -10,3 +10,25 @@ global cur_context banaya toh to uska ip change hoga kya as thread runs
 sleep() in thread real timer virtual timer
 
 gourav output
+
+4 9997
+4 9998
+4 9999
+thread4 exiting
+IN sche
+IN sche
+IN sche
+IN sche
+
+3 672
+3 673
+thread1 running
+thread1 exiting
+thread2 running
+thread2 exiting
+thread3 running
+3 0
+3 1
+
+
+multiple context
