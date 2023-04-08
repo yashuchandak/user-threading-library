@@ -86,7 +86,7 @@ myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
     nn->prev = NULL;
     nn->tid = tid++;
     nn->args = args;
-    void *stack = malloc(4096);
+    void *stack = malloc(40960);
     nn->stack = stack;
     nn->f = fn;
     // nn->context = (ucontext_t *)malloc(sizeof(ucontext_t));
@@ -102,7 +102,7 @@ myth_t thread_create(myth_t *thread, void *(*fn) (void *), void *args) {
         first_create = 1;
         // begin timer
         begin_timer();
-        clone((int *)*fn , stack + 4096, CLONE_VM, args);
+        clone((int *)*fn , stack + 40960, CLONE_VM, args);
     }
     else {
         // enqueue(&thr);
