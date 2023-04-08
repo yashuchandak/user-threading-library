@@ -52,8 +52,10 @@ void f3(void *arg) {
     
     printf("thread3 running\n");
 
-    for(int i=0; i<100000; i++) {
-        printf("3 %d\n", i);
+    for(int i=0; i<50000; i++) {
+        if(i%10 == 0) {
+            printf("3 %d\n", i);
+        }
     }
 
     printf("thread3 exiting\n");
@@ -67,8 +69,10 @@ void f4(void *arg) {
     
     printf("thread4 running\n");
 
-    for(int i=0; i<100000; i++) {
-        printf("4 %d\n", i);
+    for(int i=0; i<30000; i++) {
+        if(i%10 == 0) {
+            printf("4 %d\n", i);
+        }
     }
 
     printf("thread4 exiting\n");

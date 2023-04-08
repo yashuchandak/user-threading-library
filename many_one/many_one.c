@@ -108,16 +108,17 @@ void scheduler()
     getcontext(&sch_ctx);
     while(1)
     {
-        printf("IN sche\n");
-        myth_Node * tnode = checkRunable();
+        // printf("IN sche\n");
+        myth_Node *tnode = checkRunable();
         if(!tnode)
         {
-
+            // printf("!tnode\n");
         }
         else
         {
             begin_timer();
-            swapcontext(&sch_ctx,&tnode->context); //timer int //1st isme current ctx save kardenga
+            curr->context = tnode->context;
+            swapcontext(&sch_ctx, &tnode->context); //timer int //1st isme current ctx save kardenga
         }
     }
 }
