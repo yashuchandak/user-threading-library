@@ -15,8 +15,10 @@ void *f1(void *arg) {
     
     printf("thread1 running\n");
 
-    for(int i=0; i< 10000; i++) {
-        printf("%d\n", i);
+    for(int i=0; i< 1000000; i++) {
+        if(i%100 == 0) {
+            printf("1 %d\n", i);
+        }
     }
 
     printf("thread1 exiting\n");
@@ -36,10 +38,11 @@ void *f2(void *arg) {
 void *f3(void *arg) {
     printf("thread3 running\n");
 
-    // for(int i=0; i<100000; i++) {
-    //     printf("3 %d\n", i);
-    // }
-
+    for(int i=0; i<100000; i++) {
+        if(i%100 == 0) {
+            printf("3 %d\n", i);
+        }
+    }
     printf("thread3 exiting\n");
 
     thread_exit();
@@ -74,14 +77,13 @@ int main() {
 
     thread_create(&tid1, f1, &arg1);
     thread_create(&tid2, f2, &arg2);
-    printf("tid1%dtid1\n", tid1);
+    
 
-    for(int j=0; j<100000; j++) {
+    // for(int j=0; j<100000; j++) {
         
-    }
-
-    // printf("dfdfv\n");
-    printf("%daaaas\n", thread_kill(0, SIGKILL));
+    // }
+    // printf("after wait in main\n");
+    // printf("%daaaas\n", thread_kill(tid1, SIGKILL));
 
     thread_create(&tid3, f3, &arg1);
     thread_create(&tid4, f4, &arg2);

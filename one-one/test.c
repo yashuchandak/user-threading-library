@@ -34,7 +34,7 @@ myth_thread allthread[128];
 //     // thread_exit();
 //     // exit(0);
 //     // pthread_exit(0);
-//     thread_kill(tid[1],SIGSTOP);
+//     thread_kill(tid[1], SIGSTOP);
 //     for(k = 0; k < 3; k++) {
 //         thread_join(tid[k]);
 //     }

@@ -34,6 +34,16 @@ void end_timer()
     
 }
 
+int futex_wait(int *uaddr, int val)
+{
+    return syscall(SYS_futex, uaddr, FUTEX_WAIT, val, NULL, NULL, 0);
+}
+
+int futex_wake(int *uaddr, int n)
+{
+    return syscall(SYS_futex, uaddr, FUTEX_WAKE, n, NULL, NULL, 0);
+}
+
 void sig_alarm_handler(int sig) {
     printf("In signal handler\n");
     end_timer();
@@ -48,6 +58,7 @@ myth_Node * allocNode(int *thread, void *(*fn) (void *), void *args)
     nn->next = NULL;
     nn->prev = NULL;
     nn->tid = tid++;
+    *thread = nn->tid;
     nn->args = args;
     void *stack = malloc(4096);
     nn->stack = stack;
@@ -76,6 +87,7 @@ void append(myth_Node * Node){
 
 int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
 {
+
     signal(SIGALRM, sig_alarm_handler);
     myth_Node * new = allocNode(thread,fn,args);
     getcontext(&(new->context)); //correct?
@@ -89,10 +101,12 @@ int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
     {
         isFirst = 1;
         void * sch_stack = malloc(4096);
-        clone(scheduler,sch_stack+4096,CLONE_VM,NULL);
+        clone(scheduler, sch_stack+4096, CLONE_VM, NULL);
     }
     return 0;
 }
+
+// thread create pehli bar call hua aur schedular function clone hua, lekin parent ne return kar diya main me, parent child ke liye nhi ruka; ab main aur scheduler do chal rahe, naya thread create aata to manage ho jata... .fir jb kabhi sab node terminated status mile to clone vali chiz exit status return maregi. baat khatam. 
 
 int isAllTerminated()
 {
@@ -129,11 +143,11 @@ int scheduler()
         if(isAllTerminated())
         {
             printf("Exit\n");
-            exit(0);
+            // exit(0); 
+            return 0;
         }
         else
         {
-            printf("elseme\n");
             begin_timer();
             swapcontext(&sch_ctx, &tnode->context); //timer int //1st isme current ctx save kardenga
         }
@@ -144,9 +158,9 @@ int scheduler()
 
 void thread_exit()
 {   
-    printf("2 in exit\n");
     end_timer();
     curr->status = -1;
+    futex_wake(&curr->status, 1);
 }
 
 myth_Node * findNodeTid(int tid)
@@ -169,7 +183,6 @@ void handleSignal(myth_Node * curt, int signal)
         curt->status = -1;
         if(curt == curr) {
             // end_timer();
-            printf("tk here\n");
             swapcontext(&curt->context, &sch_ctx);
         }
     }
@@ -220,31 +233,21 @@ int thread_kill(int tid, int signal)
 }
 
 int thread_join(int tid) {
-    // int ret = waitpid(thread, NULL, __WALL); // wait for any child 
-    // 
+    myth_Node *target_node = findNodeTid(tid);
+    if (target_node == NULL) {
+        return -1;
+    }
+
+    while (1) {
+        if (target_node->status == -1) {
+            return 0;
+        }
+        if (futex_wait(&target_node->status, 1) != 0) {
+            if (errno != EINTR) {
+                return -1;
+            }
+        }
+    }
     
-    int ret = syscall(SYS_futex, &tid, FUTEX_WAIT, tid, NULL, NULL, 0);
-
-    // myth_Node *tp = head;
-    // do {
-    //     if(tp->next->tid == tid && tp->next->status == -1) {
-    //         tp->next = tp->next->next;
-    //         if(tp->next == head) {
-    //             head = head->next;
-    //         }
-    //         if(tp->next == tail) {
-    //             tail = tp;
-    //         }
-    //         if(tp->next == tp) {
-    //             head = tail = NULL;
-    //         }
-    //         free(tp->next);
-    //         break;    
-    //     } 
-    //     tp = tp->next;    
-    // }
-    // while (tp->next != head);
-
-    return ret;
+    return -1;
 }
-

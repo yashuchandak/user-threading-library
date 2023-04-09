@@ -18,10 +18,12 @@ void *f(void *arg) {
         printf("%d\n", k);        
     }
 
-    thread_exit();
+    // thread_exit();
+    return 0;
 }
 
 int main() {
+    
     getcontext(&main_ctx);
     myth_t tid;
     int arg = 10;
@@ -31,7 +33,7 @@ int main() {
     // sleep(1); 
     // printf("thread_id %d\n", tid);
 
-    thread_join(0);
+    // thread_join(0);
 
     printf("last\n");
 

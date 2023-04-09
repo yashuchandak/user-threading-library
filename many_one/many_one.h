@@ -11,8 +11,10 @@
 #include <ucontext.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <linux/futex.h>
 
 typedef int myth_t;
+extern ucontext_t main_ctx;
 
 typedef struct myth_Node{
   myth_t tid;
@@ -40,3 +42,4 @@ int scheduler() ;
 void thread_exit() ;
 int thread_join(myth_t thread);
 void sig_alarm_handler(int sig);
+int thread_kill(int tid, int signal);
