@@ -1,4 +1,5 @@
 #include "many_one.h"
+#include "spinlock.h"
 
 int tid = 0;
 int isFirst = 0;
@@ -12,7 +13,12 @@ ucontext_t sch_ctx;
 extern ucontext_t main_ctx;
 struct itimerval timer;
 
+struct spinlock lk;
+
 int i = 0;
+
+
+
 
 void begin_timer()
 {
@@ -57,7 +63,9 @@ myth_Node * allocNode(int *thread, void *(*fn) (void *), void *args)
     myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
     nn->next = NULL;
     nn->prev = NULL;
+    acquire(&lk);
     nn->tid = tid++;
+    release(&lk);
     *thread = nn->tid;
     nn->args = args;
     void *stack = malloc(4096);
@@ -87,7 +95,7 @@ void append(myth_Node * Node){
 
 int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
 {
-
+    initlock(&lk);
     signal(SIGALRM, sig_alarm_handler);
     myth_Node * new = allocNode(thread,fn,args);
     getcontext(&(new->context)); //correct?
@@ -95,8 +103,9 @@ int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
     new->context.uc_stack.ss_size = 4096;
     new->context.uc_link = &sch_ctx; //?
     makecontext(&(new->context), (void(*)())fn, 1, args);
-    
+    acquire(&lk);
     append(new);
+    release(&lk);
     if(!isFirst)
     {
         isFirst = 1;
@@ -139,7 +148,6 @@ int scheduler()
     while(1)
     {
         printf("In sched %d\n", i);
-        myth_Node * tnode = checkRunable();
         if(isAllTerminated())
         {
             printf("Exit\n");
@@ -148,6 +156,7 @@ int scheduler()
         }
         else
         {
+            myth_Node * tnode = checkRunable();
             begin_timer();
             swapcontext(&sch_ctx, &tnode->context); //timer int //1st isme current ctx save kardenga
         }
@@ -159,7 +168,9 @@ int scheduler()
 void thread_exit()
 {   
     end_timer();
+    acquire(&lk);
     curr->status = -1;
+    release(&lk);
     futex_wake(&curr->status, 1);
 }
 
@@ -178,9 +189,12 @@ myth_Node * findNodeTid(int tid)
 
 void handleSignal(myth_Node * curt, int signal)
 {
+    
     if(signal == SIGTERM || signal == SIGKILL)
     {
+        acquire(&lk);
         curt->status = -1;
+        release(&lk);
         if(curt == curr) {
             // end_timer();
             swapcontext(&curt->context, &sch_ctx);
@@ -188,18 +202,23 @@ void handleSignal(myth_Node * curt, int signal)
     }
     else if(signal == SIGCONT)
     {
+        acquire(&lk);
         curt->status = 1;
+        release(&lk);
     }
     else if(signal == SIGSTOP)
     {
         // printf("sigstop\n");
+        acquire(&lk);
         curt->status = 2;  //sigstop
+        release(&lk);
         if(curt == curr)   //schedule next
         {   
             // end_timer();
             swapcontext(&curt->context, &sch_ctx);
         }
     }
+    
 }
 
 int thread_kill(int tid, int signal)
@@ -250,4 +269,9 @@ int thread_join(int tid) {
     }
     
     return -1;
+}
+
+void thread_mutex_lock()
+{
+       
 }

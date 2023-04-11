@@ -15,11 +15,11 @@ void *f1(void *arg) {
     
     printf("thread1 running\n");
 
-    for(int i=0; i< 1000000; i++) {
-        if(i%100 == 0) {
-            printf("1 %d\n", i);
-        }
-    }
+    // for(int i=0; i< 1000000; i++) {
+    //     if(i%100 == 0) {
+    //         printf("1 %d\n", i);
+    //     }
+    // }
 
     printf("thread1 exiting\n");
 
@@ -38,11 +38,11 @@ void *f2(void *arg) {
 void *f3(void *arg) {
     printf("thread3 running\n");
 
-    for(int i=0; i<100000; i++) {
-        if(i%100 == 0) {
-            printf("3 %d\n", i);
-        }
-    }
+    // for(int i=0; i<100000; i++) {
+    //     if(i%100 == 0) {
+    //         printf("3 %d\n", i);
+    //     }
+    // }
     printf("thread3 exiting\n");
 
     thread_exit();
