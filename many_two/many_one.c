@@ -14,7 +14,7 @@ struct itimerval timer;
 
 struct spinlock tid_lk;  // for tid (global)
 struct spinlock list_lk;  // for list (global)
-extern void * main();
+
 void init_all_locks()
 {
     initlock(&tid_lk);
@@ -88,33 +88,10 @@ void append(myth_Node * Node){
 
 int thread_create(int *thread, void *(*fn) (void *), void *args)
 {
-    printf("Yes\n");
     if(!isFirst)
     {
-        
         init_all_locks();
-        
-        myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
-        nn->next = NULL;
-        nn->prev = NULL;
-        acquire(&tid_lk);
-        nn->tid = tid++;
-        release(&tid_lk);
-        void *stack = malloc(4096);
-        nn->stack = stack;
-        nn->status = 1;
-        nn->f = main;
-        nn->lk = (struct spinlock*)malloc(sizeof(struct spinlock));
-        initlock(nn->lk);
-        nn->context = main_ctx;
-        // getcontext(&nn->context); //correct?
-        // nn->context.uc_stack.ss_sp = nn->stack;
-        // nn->context.uc_stack.ss_size = 4096;
-        // nn->context.uc_link = &sch_ctx; //?
-        // makecontext(&(nn->context), (void(*)())main, 0);
-        acquire(&list_lk);
-        append(nn);
-        release(&list_lk);
+
     }
     signal(SIGALRM, sig_alarm_handler);
     myth_Node * new = allocNode(thread,fn,args);
@@ -130,8 +107,8 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
     {
         isFirst = 1;
         void * sch_stack = malloc(4096);
-        // clone(scheduler, sch_stack+4096, CLONE_VM, NULL); //aur falg use karne hai; main me se signal nhi ja rahe
-        scheduler();
+        clone(scheduler, sch_stack+4096, CLONE_VM, NULL); //aur falg use karne hai; main me se signal nhi ja rahe
+        // scheduler();
     }
     return 0;
 }
@@ -173,7 +150,6 @@ int scheduler()
         {
             // printf("Exit\n");
             // exit(0); 
-            
             return 0;
         }
         else

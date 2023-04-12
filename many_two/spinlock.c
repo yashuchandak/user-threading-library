@@ -39,6 +39,7 @@ void initfutexlock(struct spinlock *lock)
 
 void sleeplock(struct spinlock *lock)
 {
+
     while (__sync_lock_test_and_set(&lock->locked, 1) != 0)
     {
         int ret = futex_wait(&lock->locked,1);

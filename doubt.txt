@@ -1,15 +1,26 @@
-many one me,
-main thread aur ek active thread concurrently chalegi kya
+clone ek bar ke liye use kar sakte fir badme sare threads chalane ke liye swap context use kar rahe?
 
-getcontext se currently active thread ka context milega?
+mutext matlab sleep locks?
+xv6 se lena code?
 
-global cur_context banaya toh to uska ip change hoga kya as thread runs
+threadkill in main se nhi hora?
+using swapcontext for handling signals
+can not do it from main....
+
+========================
+real timer use kare ya virtual timer
+
+getcontext se currently active context milega
+
+ha tohhh,
+many one me, main thread aur ek active thread concurrently chalegi kya
+
+global cur_context banaya toh to uska ip change hoga as thread runs
 
 sleep() in thread real timer virtual timer
 
 scanf in thread real time vs virtual time
 
-========================
 kabhi sahi behavious kabhi galat
 computer computer ka farak?
 

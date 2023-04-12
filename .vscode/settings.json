@@ -3,7 +3,9 @@
         "thread_n.h": "c",
         "signal.h": "c",
         "wait.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "many_one.h": "c",
+        "stdlib.h": "c"
     },
     "cmake.configureOnOpen": false
 }

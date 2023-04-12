@@ -2,7 +2,7 @@
 
 int tid = 0;
 int isFirst = 0;
-
+int mainFirst = 1;
 myth_Node * head = NULL;
 myth_Node * temp = NULL;
 myth_Node * curr = NULL;
@@ -24,9 +24,9 @@ void init_all_locks()
 void begin_timer()
 {
     timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 1000; // 0.5 millisecs
+    timer.it_value.tv_usec = 500; // 0.5 millisecs
     timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 1000;
+    timer.it_interval.tv_usec = 500;
     setitimer(ITIMER_REAL, &timer, NULL);
     // printf("%d\n", timer.it_value.tv_usec);
 }
@@ -42,7 +42,7 @@ void end_timer()
 }
 
 void sig_alarm_handler(int sig) {
-    // printf("In signal handler\n");
+    printf("In signal handler\n");
     end_timer();
     curr->status = 1;
     // scheduler();
@@ -107,11 +107,11 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
         nn->lk = (struct spinlock*)malloc(sizeof(struct spinlock));
         initlock(nn->lk);
         nn->context = main_ctx;
-        // getcontext(&nn->context); //correct?
-        // nn->context.uc_stack.ss_sp = nn->stack;
-        // nn->context.uc_stack.ss_size = 4096;
-        // nn->context.uc_link = &sch_ctx; //?
-        // makecontext(&(nn->context), (void(*)())main, 0);
+        getcontext(&nn->context); //correct?
+        nn->context.uc_stack.ss_sp = nn->stack;
+        nn->context.uc_stack.ss_size = 4096;
+        nn->context.uc_link = &sch_ctx; //?
+        makecontext(&(nn->context), (void(*)())main, 0);
         acquire(&list_lk);
         append(nn);
         release(&list_lk);
@@ -168,17 +168,22 @@ int scheduler()
     getcontext(&sch_ctx);
     while(1)
     {
-        // printf("In sched %d\n", i);
         if(isAllTerminated())
         {
-            // printf("Exit\n");
-            // exit(0); 
-            
             return 0;
         }
         else
         {
-            myth_Node * tnode = checkRunable();
+            myth_Node * tnode = checkRunable();  
+            if(mainFirst)
+            {
+                free(head->next);
+                mainFirst = 0;
+                tid--;
+                tail = head;
+                head->next = head;
+                head->prev = head;
+            }
             begin_timer();
             swapcontext(&sch_ctx, &tnode->context); //timer int //1st isme current ctx save kardenga
         }
@@ -259,12 +264,13 @@ int thread_kill(int tid, int signal)
         }
         else
         {
+            // printf("sahi\n");
             myth_Node * sig_node =  findNodeTid(tid);
             if(!sig_node) {
                 // printf("sig_node not found\n");
                 return -1;
             }
-            end_timer();
+            // end_timer();
             handleSignal(sig_node, signal);
         }
         return 0;
@@ -274,11 +280,12 @@ int thread_kill(int tid, int signal)
 }
 
 int thread_join(int tid) {
+    
     myth_Node *target_node = findNodeTid(tid);
     if (target_node == NULL) {
         return -1;
     }
-
+    
     while (1) {
         if (target_node->status == -1) {
             return 0;
