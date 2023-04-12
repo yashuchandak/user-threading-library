@@ -1,7 +1,4 @@
 // Mutual exclusion lock.
-#include <stdlib.h>
-
-
 struct spinlock {
     int locked;
 };
@@ -9,4 +6,7 @@ struct spinlock {
 void initlock(struct spinlock *lk);
 void acquire(struct spinlock *lk);
 void release(struct spinlock *lk);
-
+int futex_wait(int *uaddr, int val);
+int futex_wake(int *uaddr, int n);
+void sleeplock(struct spinlock *lock);
+void sleepunlock(struct spinlock *lock);

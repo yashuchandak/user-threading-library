@@ -1,5 +1,4 @@
 #include "many_one.h"
-#include "spinlock.h"
 
 int tid = 0;
 int isFirst = 0;
@@ -13,19 +12,21 @@ ucontext_t sch_ctx;
 extern ucontext_t main_ctx;
 struct itimerval timer;
 
-struct spinlock lk;
+struct spinlock tid_lk;  // for tid (global)
+struct spinlock list_lk;  // for list (global)
 
-int i = 0;
-
-
-
+void init_all_locks()
+{
+    initlock(&tid_lk);
+    initlock(&list_lk);
+}
 
 void begin_timer()
 {
     timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 500; // 0.5 millisecs
+    timer.it_value.tv_usec = 1000; // 0.5 millisecs
     timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 500;
+    timer.it_interval.tv_usec = 1000;
     setitimer(ITIMER_REAL, &timer, NULL);
     // printf("%d\n", timer.it_value.tv_usec);
 }
@@ -40,18 +41,8 @@ void end_timer()
     
 }
 
-int futex_wait(int *uaddr, int val)
-{
-    return syscall(SYS_futex, uaddr, FUTEX_WAIT, val, NULL, NULL, 0);
-}
-
-int futex_wake(int *uaddr, int n)
-{
-    return syscall(SYS_futex, uaddr, FUTEX_WAKE, n, NULL, NULL, 0);
-}
-
 void sig_alarm_handler(int sig) {
-    printf("In signal handler\n");
+    // printf("In signal handler\n");
     end_timer();
     curr->status = 1;
     // scheduler();
@@ -63,15 +54,17 @@ myth_Node * allocNode(int *thread, void *(*fn) (void *), void *args)
     myth_Node * nn = (myth_Node*)malloc(sizeof(myth_Node));
     nn->next = NULL;
     nn->prev = NULL;
-    acquire(&lk);
+    acquire(&tid_lk);
     nn->tid = tid++;
-    release(&lk);
+    release(&tid_lk);
     *thread = nn->tid;
     nn->args = args;
     void *stack = malloc(4096);
     nn->stack = stack;
     nn->status = 1;
     nn->f = fn;
+    nn->lk = (struct spinlock*)malloc(sizeof(struct spinlock));
+    initlock(nn->lk);
     return nn;
 }
 
@@ -93,9 +86,12 @@ void append(myth_Node * Node){
 }
 
 
-int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
+int thread_create(int *thread, void *(*fn) (void *), void *args)
 {
-    initlock(&lk);
+    if(!isFirst)
+    {
+        init_all_locks();
+    }
     signal(SIGALRM, sig_alarm_handler);
     myth_Node * new = allocNode(thread,fn,args);
     getcontext(&(new->context)); //correct?
@@ -103,9 +99,9 @@ int thread_create(myth_t *thread, void *(*fn) (void *), void *args)
     new->context.uc_stack.ss_size = 4096;
     new->context.uc_link = &sch_ctx; //?
     makecontext(&(new->context), (void(*)())fn, 1, args);
-    acquire(&lk);
+    acquire(&list_lk);
     append(new);
-    release(&lk);
+    release(&list_lk);
     if(!isFirst)
     {
         isFirst = 1;
@@ -147,10 +143,10 @@ int scheduler()
     getcontext(&sch_ctx);
     while(1)
     {
-        printf("In sched %d\n", i);
+        // printf("In sched %d\n", i);
         if(isAllTerminated())
         {
-            printf("Exit\n");
+            // printf("Exit\n");
             // exit(0); 
             return 0;
         }
@@ -168,9 +164,9 @@ int scheduler()
 void thread_exit()
 {   
     end_timer();
-    acquire(&lk);
+    acquire(curr->lk);
     curr->status = -1;
-    release(&lk);
+    release(curr->lk);
     futex_wake(&curr->status, 1);
 }
 
@@ -192,9 +188,9 @@ void handleSignal(myth_Node * curt, int signal)
     
     if(signal == SIGTERM || signal == SIGKILL)
     {
-        acquire(&lk);
+        acquire(curt->lk);
         curt->status = -1;
-        release(&lk);
+        release(curt->lk);
         if(curt == curr) {
             // end_timer();
             swapcontext(&curt->context, &sch_ctx);
@@ -202,16 +198,16 @@ void handleSignal(myth_Node * curt, int signal)
     }
     else if(signal == SIGCONT)
     {
-        acquire(&lk);
+        acquire(curt->lk);
         curt->status = 1;
-        release(&lk);
+        release(curt->lk);
     }
     else if(signal == SIGSTOP)
     {
         // printf("sigstop\n");
-        acquire(&lk);
+        acquire(curt->lk);
         curt->status = 2;  //sigstop
-        release(&lk);
+        release(curt->lk);
         if(curt == curr)   //schedule next
         {   
             // end_timer();
@@ -239,7 +235,7 @@ int thread_kill(int tid, int signal)
         {
             myth_Node * sig_node =  findNodeTid(tid);
             if(!sig_node) {
-                printf("sig_node not found\n");
+                // printf("sig_node not found\n");
                 return -1;
             }
             end_timer();
@@ -271,7 +267,12 @@ int thread_join(int tid) {
     return -1;
 }
 
-void thread_mutex_lock()
+void thread_mutex_lock(struct spinlock * mk)
 {
-       
+    sleeplock(mk);
+}
+
+void thread_mutex_unlock(struct spinlock *mk)
+{
+    sleepunlock(mk);
 }

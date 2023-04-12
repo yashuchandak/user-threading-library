@@ -9,39 +9,50 @@
 #include <syscall.h>
 
 ucontext_t main_ctx;
-int x = 20;
-
+int x = 0;
+struct spinlock mk;
 void *f1(void *arg) {
     
-    printf("thread1 running\n");
-
-    // for(int i=0; i< 1000000; i++) {
-    //     if(i%100 == 0) {
-    //         printf("1 %d\n", i);
-    //     }
-    // }
-
-    printf("thread1 exiting\n");
+    int p = *(int *)arg;
+    // printf("thread1 running\n");
+    // printf("1 %d\n",p);
+    
+    for(int i=0;i<10000000;i++)
+    {
+        // printf("1 %d\n",x);
+        
+        thread_mutex_lock(&mk);
+        x++;
+        thread_mutex_unlock(&mk);
+    }
+    // printf("thread1 exiting\n");
 
     thread_exit();
 }
 
 void *f2(void *arg) {
-   
-    printf("thread2 running\n");
-   
-    printf("thread2 exiting\n");
+    int p = *(int *)arg;
+    // printf("thread2 running\n");
+    // printf("2 %d\n",p);
+    for(int i=0;i<10000000;i++)
+    {
+        // printf("2 %d\n",x);
+        thread_mutex_lock(&mk);
+        //printf("Hi 2\n");
+        x++;
+        thread_mutex_unlock(&mk);
+    }
+    // printf("thread2 exiting\n");
 
     thread_exit();
 }
 
 void *f3(void *arg) {
+    int p = *(int *)arg;
     printf("thread3 running\n");
-
+    printf("3 %d\n",p);
     // for(int i=0; i<100000; i++) {
-    //     if(i%100 == 0) {
-    //         printf("3 %d\n", i);
-    //     }
+    //     printf("3 %d\n", i);
     // }
     printf("thread3 exiting\n");
 
@@ -49,19 +60,30 @@ void *f3(void *arg) {
 }
 
 void *f4(void *arg) {
-    printf("thread4 running\n");
 
+    int p = *(int *)arg;
+    // printf("%d x= %d\n", p, x);
+    
+    printf("thread4 running\n");
+    // thread_kill(0,SIGCONT);
     // for(int i=0; i<100000; i++) {
     //     printf("4 %d\n", i);
     // }
-
+    printf("4 %d\n",p);
     printf("thread4 exiting\n");
 
     thread_exit();
 }
 
 void *f5(void *arg) {
+    int p = *(int *)arg;
+    // printf("%d x= %d\n", p, x);
+    
     printf("thread5 running\n");
+    printf("5 %d\n",p);
+    // for(int i=0; i<100000; i++) {
+        
+    // }
 
     printf("thread5 exiting\n");
 
@@ -71,34 +93,30 @@ void *f5(void *arg) {
 
 
 int main() {
-    
-    myth_t tid1, tid2, tid3, tid4, tid5;
+    initlock(&mk);
+    int tid1, tid2, tid3, tid4, tid5;
     int arg1 = 10, arg2 = 20;
-
     thread_create(&tid1, f1, &arg1);
-    thread_create(&tid2, f2, &arg2);
+    thread_create(&tid2, f2, &arg1);
+    // thread_create(&tid3, f3, &arg1);
     
+    // thread_create(&tid4, f4, &arg2);
+    // thread_create(&tid5, f5, &arg1);
 
-    // for(int j=0; j<100000; j++) {
-        
-    // }
-    // printf("after wait in main\n");
-    // printf("%daaaas\n", thread_kill(tid1, SIGKILL));
+    for(int i=0;i<100000;i++)
+    {
 
-    thread_create(&tid3, f3, &arg1);
-    thread_create(&tid4, f4, &arg2);
-    thread_create(&tid5, f5, &arg1);
-    // sleep(1); 
+    }
+
+    thread_join(0);
     
-    // printf("%d\n", 
-    // thread_kill(tid1, SIGTERM);
+    thread_join(1);
+    printf("%d\n",x);
+    // thread_join(2);
+    // thread_join(3);
+    // thread_join(4);
+
+
     
-
-    thread_join(tid1);
-    thread_join(tid2);
-    thread_join(tid3);
-    thread_join(tid4);
-    thread_join(tid5);
-
     return 0;
 }
