@@ -1,4 +1,8 @@
+// kernel thread isme?
+
 #include "many_one.h"
+
+
 
 int tid = 0;
 int isFirst = 0;
@@ -9,12 +13,16 @@ myth_Node * curr = NULL;
 myth_Node * tail = NULL;
 
 ucontext_t sch_ctx;
-extern ucontext_t main_ctx;
+ucontext_t main_ctx;
 struct itimerval timer;
+
+
 
 struct spinlock tid_lk;  // for tid (global)
 struct spinlock list_lk;  // for list (global)
+
 extern void * main();
+
 void init_all_locks()
 {
     initlock(&tid_lk);
@@ -88,7 +96,6 @@ void append(myth_Node * Node){
 
 int thread_create(int *thread, void *(*fn) (void *), void *args)
 {
-    printf("Yes\n");
     if(!isFirst)
     {
         
@@ -198,7 +205,8 @@ void thread_exit()
     acquire(curr->lk);
     curr->status = -1;
     release(curr->lk);
-    futex_wake(&curr->status, 1);
+    scheduler();
+    // futex_wake(&curr->status, 1);
 }
 
 myth_Node * findNodeTid(int tid)
@@ -280,24 +288,13 @@ int thread_kill(int tid, int signal)
 }
 
 int thread_join(int tid) {
-    
-    myth_Node *target_node = findNodeTid(tid);
-    if (target_node == NULL) {
-        return -1;
-    }
-    
-    while (1) {
-        if (target_node->status == -1) {
+    while (1)
+    {
+        myth_Node *tp = findNodeTid(tid);
+        if(tp->status == -1) {
             return 0;
         }
-        if (futex_wait(&target_node->status, 1) != 0) {
-            if (errno != EINTR) {
-                return -1;
-            }
-        }
     }
-    
-    return -1;
 }
 
 void thread_mutex_lock(struct spinlock * mk)

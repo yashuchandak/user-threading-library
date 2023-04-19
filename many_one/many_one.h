@@ -14,8 +14,8 @@
 #include <linux/futex.h>
 #include "spinlock.h"
 
-extern ucontext_t main_ctx;
-extern void * main();
+// extern ucontext_t main_ctx;
+extern void *main();
 typedef struct myth_Node{
   int tid;
   void *stack;
