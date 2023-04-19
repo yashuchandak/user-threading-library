@@ -1,0 +1,38 @@
+Main running on 61608
+In create
+In clone
+Alert tid 1
+In create
+In clone
+Alert tid 2
+thread1 running on 61609
+thread1 running on 61609
+In create
+thread2 running on 61610
+thread2 running on 61610
+In create
+Hello  On signal handler 61608
+ HEllloGoing in scheduler from 61608 timer paasd time pass
+In scheduler from 61608
+Runnig node found of tid 0
+In scheduler from 61608
+Runnig node found of tid 3
+thread3 running on 61608
+thread3 running on 61608
+thread3 exiting
+thread3 exiting
+Going in scheduler from 61608 timer paasd time pass
+In scheduler from 61608
+Runnig node found of tid 4
+thread4 running on 61608
+thread4 running on 61608
+thread4 exiting
+thread4 exiting
+Going in scheduler from 61608 timer paasd time pass
+61608
+ ktidkthread ending
+thread2 exiting
+thread2 exiting
+Going in scheduler from 61610 timer paasd time pass
+61610
+ ktidkthread ending
