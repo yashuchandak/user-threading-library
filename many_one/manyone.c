@@ -50,7 +50,7 @@ void end_timer()
 }
 
 void sig_alarm_handler(int sig) {
-    printf("In signal handler\n");
+    // printf("In signal handler\n");
     end_timer();
     curr->status = 1;
     // scheduler();

@@ -16,15 +16,15 @@ void *f1(void *arg) {
     printf("thread1 running\n");
 
     // printf("1 %d\n",p);
-    for(int i=0;i<100000;i++)
+    for(int i=0;i<10000000;i++)
     {
         
-        // thread_mutex_lock(&mk);
-        printf("1 %d\n",i);
+        thread_mutex_lock(&mk);
+        // printf("1 %d\n",i);
         // acquire(&mk);
         x++;
         // release(&mk);
-        // thread_mutex_unlock(&mk);
+        thread_mutex_unlock(&mk);
     }
     
     printf("thread1 exiting\n");
@@ -38,11 +38,11 @@ void *f2(void *arg) {
     // printf("2 %d\n",p);
     // thread_kill(1, SIGSTOP);
     // printf("Yash\n");
-    for(int i=0;i<100000;i++)
+    for(int i=0;i<10000000;i++)
     {
         
         thread_mutex_lock(&mk);
-        printf("2 %d\n",i+1);
+        // printf("2 %d\n",i+1);
         // acquire(&mk);
         x++;
         // release(&mk);
@@ -58,15 +58,15 @@ void *f3(void *arg) {
     int p = *(int *)arg;
     printf("thread3 running\n");
     printf("3 %d\n",p);
-    for(int i=0;i<500000;i++)
+    for(int i=0;i<5000000;i++)
     {
         
-        // thread_mutex_lock(&mk);
-        printf("3 %d\n",i);
+        thread_mutex_lock(&mk);
+        // printf("3 %d\n",i);
         // acquire(&mk);
         x++;
         // release(&mk);
-        // thread_mutex_unlock(&mk);
+        thread_mutex_unlock(&mk);
     }
     printf("thread3 exiting\n");
 
@@ -151,7 +151,7 @@ void * main() {
     for(int i=0; i<1000000; i++) {
 
     }
-    thread_kill(3, SIGSTOP);
+    // thread_kill(3, SIGSTOP);
     
     printf("TId %d\n",tid1);
     printf("TId %d\n",tid2);
@@ -163,11 +163,9 @@ void * main() {
     // TIME CHAHIYE; nhi to segfault
 
     // printf("hello\n");
-    for(int i=0; i<1000000; i++) {
-
-    }
+    
     printf("%d\n", x);
-    // sleep(1);
+    sleep(1);
     
     return NULL;
 }
