@@ -14,8 +14,6 @@
 #include <linux/futex.h>
 #include "spinlock.h"
 
-// extern ucontext_t main_ctx;
-extern void *main();
 typedef struct myth_Node{
   int tid;
   void *stack;
@@ -29,15 +27,10 @@ typedef struct myth_Node{
   struct myth_Node * prev;
 } myth_Node;
 
-// void append(myth_Node * Node);
-// myth_Node * traverse(ucontext_t temp);
-// myth_Node *  delete();
-// void initMain();
 int thread_create(int *thread, void *(*fn) (void *), void *args);
 int scheduler();
 void thread_exit() ;
 int thread_join(int thread);
-// void sig_alarm_handler(int sig);
 int thread_kill(int tid, int signal);
 void thread_mutex_lock(struct spinlock * mk);
 void thread_mutex_unlock(struct spinlock * mk);
