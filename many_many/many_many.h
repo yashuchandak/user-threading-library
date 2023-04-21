@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <linux/futex.h>
 #include "spinlock.h"
+
 void sig_alarm_handler(int sig);
 extern ucontext_t main_ctx;
 extern void * main();
@@ -36,7 +37,4 @@ int thread_create(int *thread, void *(*fn) (void *), void *args);
 void thread_exit();
 int thread_join(int tid);
 int thread_kill(int tid, int signal);
-
-void thread_mutex_lock(struct spinlock * mk);
-void thread_mutex_unlock(struct spinlock * mk);
 int thread_cancel(int tid);

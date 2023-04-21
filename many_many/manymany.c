@@ -60,7 +60,7 @@ myth_Node * findNodekTid(int ktid)
 }
 
 void sig_alarm_handler(int sig) {
-    // printf("Hello  On signal handler %d\n HElllo",gettid());
+    printf("Hello  On signal handler %d\n HElllo",gettid());
     myth_Node *tp = findNodekTid(gettid());
     end_timer(tp->tid);
     if(tp->status == 0) {
@@ -131,16 +131,18 @@ void thread_exit()
     setcontext(&sch_ctx);
 }
 
-
-myth_Node * checkRunable() {
-    curr = temp;
-    do {
-        if (curr->status == 1) {
-            temp = curr->next;
-            return curr;
+myth_Node * checkRunable()
+{
+    myth_Node * tp = temp;
+    do
+    {
+        if(tp->status==1)
+        {
+            temp = tp->next;
+            return tp;
         }
-        curr = curr->next;
-    } while (temp != curr);
+        tp= tp->next;
+    } while (tp!=temp);
     return NULL;
 }
 
@@ -244,7 +246,7 @@ void handleSignal(myth_Node * curt, int signal, int isCurrRunning)
 
 int scheduler()
 {
-    // printf("Going in scheduler from %d timer paasd time pass\n",gettid());
+    printf("Going in scheduler from %d timer paasd time pass\n",gettid());
     
     getcontext(&sch_ctx);
     while (1)
@@ -255,13 +257,13 @@ int scheduler()
         }
         else
         {
-            // printf("In scheduler from %d\n",gettid());
+            printf("In scheduler from %d\n",gettid());
             acquire(&sch_lk);
             myth_Node * tnode = checkRunable();
             release(&sch_lk);
             if(tnode)
             {
-                // printf("Runnig node found of tid %d\n",tnode->tid);
+                printf("Runnig node found of tid %d\n",tnode->tid);
                 tnode->ktid = gettid();
                 tnode->status = 0;
                 begin_timer(tnode->tid);
@@ -287,7 +289,7 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
         nn->tid = tid++;
         nn->ktid = gettid();
         release(&tid_lk);
-        void *stack = malloc(1024*1024);
+        void *stack = malloc(4096);
         nn->stack = stack;
         nn->status = 0;
         nn->f = main;
@@ -296,7 +298,7 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
         // nn->context = main_ctx;
         getcontext(&nn->context); //correct?
         nn->context.uc_stack.ss_sp = nn->stack;
-        nn->context.uc_stack.ss_size = 1024*1024;
+        nn->context.uc_stack.ss_size = 4096;
         // nn->context.uc_link = &main_ctx; //?
         makecontext(&(nn->context), (void(*)())main, 0);
         // nn->context = main_ctx;
@@ -308,7 +310,7 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
     myth_Node * new = allocNode(thread,fn,args);
     getcontext(&(new->context)); //correct?
     new->context.uc_stack.ss_sp = new->stack;
-    new->context.uc_stack.ss_size = 1024*1024;
+    new->context.uc_stack.ss_size = 4096;
     // new->context.uc_link = &sch_ctx; //?
     makecontext(&(new->context), (void(*)())fn, 1, args);
     acquire(&list_lk);
@@ -336,7 +338,7 @@ int thread_kill(int tid, int signal)
         acquire(&list_lk); //lks same?
         myth_Node * kill_node = findNodeTid(tid);
         release(&list_lk);
-        kill_node->ktid = -1;
+
         if(kill_node->status == 0)
         {
             // printf("curr status 0\n");
@@ -363,10 +365,4 @@ void thread_mutex_lock(struct spinlock * mk)
 void thread_mutex_unlock(struct spinlock *mk)
 {
     sleepunlock(mk);
-}
-
-
-int thread_cancel(int tid)
-{   
-    thread_kill(tid,SIGTERM);
 }
