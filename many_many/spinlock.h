@@ -1,4 +1,9 @@
 // Mutual exclusion lock.
+#define _GNU_SOURCE
+#include <signal.h>
+#include <ucontext.h>
+#include <stdlib.h>
+
 struct spinlock {
     int locked;
 };

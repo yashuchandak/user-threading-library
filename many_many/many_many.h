@@ -38,3 +38,5 @@ void thread_exit();
 int thread_join(int tid);
 int thread_kill(int tid, int signal);
 int thread_cancel(int tid);
+void thread_mutex_lock(struct spinlock *mk);
+void thread_mutex_unlock(struct spinlock *mk);

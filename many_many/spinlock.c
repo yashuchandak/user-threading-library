@@ -1,7 +1,4 @@
 #include "spinlock.h"
-#include <signal.h>
-#include <ucontext.h>
-#include <stdlib.h>
 
 typedef struct myth_Node{
   int tid;
@@ -54,8 +51,6 @@ void sleeplock(struct spinlock *lock)
 {
     while (__sync_lock_test_and_set(&lock->locked, 1) != 0)
     {
-        // scheduler();
-        // setcontext(&sch_ctx);
         tgkill(getpid(), findNodektid(gettid())->ktid, SIGALRM);
     }
 }

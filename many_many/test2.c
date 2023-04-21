@@ -13,11 +13,10 @@ int x = 0;
 struct spinlock mk;
 void *f1(void *arg) {
     int p = *(int *)arg;
-    printf("Reading arguments given to thread1 %d\n",p);
-    printf("thread1 running\n");
-    for(int i=0;i<10000;i++)
+    printf("args recieved thread1 running\n");
+    for(int i=0;i<1000000;i++)
     {
-
+        
     }
     printf("thread1 exiting\n");
     thread_exit();
@@ -25,7 +24,7 @@ void *f1(void *arg) {
 
 void *f2(void *arg) {
     printf("thread2 running\n");
-    for(int i=0;i<10000;i++)
+    for(int i=0;i<100000;i++)
     {
     }
     printf("thread2 exiting\n");
@@ -45,7 +44,7 @@ void *f3(void *arg) {
 
 void *f4(void *arg) {
     printf("thread4 running\n");
-    for(int i=0; i<10000; i++) {
+    for(int i=0; i<100000; i++) {
 
     }
     
@@ -56,7 +55,7 @@ void *f4(void *arg) {
 
 void *f5(void *arg) {
     printf("thread5 running\n");
-    for(int i=0; i<10000; i++) {
+    for(int i=0; i<100000; i++) {
 
     }
 
@@ -66,6 +65,9 @@ void *f5(void *arg) {
 }
 
 void * main() {
+
+    printf("Main started\n");
+
     initlock(&mk);
     int tid1, tid2, tid3, tid4, tid5;
     int arg1 = 10;
@@ -74,16 +76,24 @@ void * main() {
     thread_create(&tid3, f3, NULL);
     thread_create(&tid4, f4, NULL);
     thread_create(&tid5, f5, NULL);
-    for(int i=0; i<1000; i++) {
+    
+    thread_kill(tid4, SIGTERM);
+    for(int i=0; i<200000; i++) {
+
     }
-    thread_kill(tid2, SIGTERM);
-    // thread_kill(tid5, SIGTERM);   //sending signal before thread gets scheduled
-    // thread_kill(tid3,SIGCONT);
+    
+    thread_kill(tid1, SIGSTOP);
+    for(int i=0; i<10000; i++) {
+
+    }
+    thread_kill(tid1, SIGCONT);
+    
     thread_join(tid1);  
     thread_join(tid2);
     thread_join(tid3); 
     thread_join(tid4);  
     thread_join(tid5);  
     
+    printf("Done\n");
     return NULL;
 }

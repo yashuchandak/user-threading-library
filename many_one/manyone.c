@@ -36,7 +36,6 @@ void begin_timer()
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 500;
     setitimer(ITIMER_REAL, &timer, NULL);
-    // printf("%d\n", timer.it_value.tv_usec);
 }
 
 void end_timer()
@@ -50,10 +49,8 @@ void end_timer()
 }
 
 void sig_alarm_handler(int sig) {
-    // printf("In signal handler\n");
     end_timer();
     curr->status = 1;
-    // scheduler();
     swapcontext(&curr->context, &sch_ctx);
 }
 
@@ -114,7 +111,7 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
         nn->lk = (struct spinlock*)malloc(sizeof(struct spinlock));
         initlock(nn->lk);
         nn->context = main_ctx;
-        getcontext(&nn->context); //correct?
+        getcontext(&nn->context);
         nn->context.uc_stack.ss_sp = nn->stack;
         nn->context.uc_stack.ss_size = 4096;
         nn->context.uc_link = &sch_ctx; //?
@@ -126,10 +123,10 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
     }
     signal(SIGALRM, sig_alarm_handler);
     myth_Node * new = allocNode(thread,fn,args);
-    getcontext(&(new->context)); //correct?
+    getcontext(&(new->context)); 
     new->context.uc_stack.ss_sp = new->stack;
     new->context.uc_stack.ss_size = 4096;
-    new->context.uc_link = &sch_ctx; //?
+    new->context.uc_link = &sch_ctx; 
     makecontext(&(new->context), (void(*)())fn, 1, args);
     
     
@@ -140,13 +137,10 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
     {
         isFirst = 1;
         void * sch_stack = malloc(4096);
-        // clone(scheduler, sch_stack+4096, CLONE_VM, NULL); //aur falg use karne hai; main me se signal nhi ja rahe
         scheduler();
     }
     return 0;
 }
-
-// thread create pehli bar call hua aur schedular function clone hua, lekin parent ne return kar diya main me, parent child ke liye nhi ruka; ab main aur scheduler do chal rahe, naya thread create aata to manage ho jata... .fir jb kabhi sab node terminated status mile to clone vali chiz exit status return maregi. baat khatam. 
 
 int isAllTerminated()
 {
@@ -279,9 +273,9 @@ void handleSignal(myth_Node * curt, int signal)
     else if(signal == SIGSTOP)
     {
         acquire(curt->lk);
-        curt->status = 2;  //sigstop
+        curt->status = 2;  
         release(curt->lk);
-        if(curt == curr)   //schedule next
+        if(curt == curr)   
         {   
             swapcontext(&curt->context, &sch_ctx);
         }

@@ -36,7 +36,7 @@ void release(struct spinlock *lock)
 extern ucontext_t sch_ctx;
 extern myth_Node *curr;
 
-void sleeplock(struct spinlock *lock) //?
+void sleeplock(struct spinlock *lock) 
 {
     while(__sync_lock_test_and_set(&lock->locked, 1) != 0)
     {

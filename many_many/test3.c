@@ -14,7 +14,7 @@ int z = 0, z1 = 0, z2 = 0;
 struct spinlock mk;
 
 void *f1(void *arg) {
-    for(int i=0;i<30000;i++)
+    for(int i=0;i<10000;i++)
     {
         thread_mutex_lock(&mk);
         x++;
@@ -25,7 +25,7 @@ void *f1(void *arg) {
 }
 
 void *f2(void *arg) {
-    for(int i=0;i<30000;i++)
+    for(int i=0;i<10000;i++)
     {
         thread_mutex_lock(&mk);
         x++;
@@ -36,7 +36,7 @@ void *f2(void *arg) {
 }
 
 void *f3(void *arg) {
-    for(int i=0;i<30000;i++)
+    for(int i=0;i<10000;i++)
     {
         z++;
         z1++;
@@ -47,7 +47,7 @@ void *f3(void *arg) {
 
 
 void *f4(void *arg) {
-    for(int i=0; i<30000; i++) 
+    for(int i=0; i<10000; i++) 
     {
        z++;
        z2++;
