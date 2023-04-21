@@ -34,7 +34,7 @@ typedef struct myth_Node{
 // myth_Node *  delete();
 // void initMain();
 int thread_create(int *thread, void *(*fn) (void *), void *args);
-// int scheduler();
+int scheduler();
 void thread_exit() ;
 int thread_join(int thread);
 // void sig_alarm_handler(int sig);
