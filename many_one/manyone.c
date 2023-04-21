@@ -118,7 +118,8 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
         nn->context.uc_stack.ss_sp = nn->stack;
         nn->context.uc_stack.ss_size = 4096;
         nn->context.uc_link = &sch_ctx; //?
-        makecontext(&(nn->context), (void(*)())main, 0);
+        // makecontext(&(nn->context), (void(*)())main, 0);
+        // getcontext(&(nn->context)); //correct?
         acquire(&list_lk);
         append(nn);
         release(&list_lk);
@@ -130,6 +131,8 @@ int thread_create(int *thread, void *(*fn) (void *), void *args)
     new->context.uc_stack.ss_size = 4096;
     new->context.uc_link = &sch_ctx; //?
     makecontext(&(new->context), (void(*)())fn, 1, args);
+    
+    
     acquire(&list_lk);
     append(new);
     release(&list_lk);
@@ -157,11 +160,45 @@ int isAllTerminated()
     return 1;
 }
 
+void cleanup(myth_Node *clean) {
+    free(clean->stack);
+    free(clean->args);
+    free(clean->lk);
+    free(clean);
+}
+
 myth_Node * checkRunable() {
     curr = temp;
+    
     do {
+        if (curr->next->status == 3) {
+            if(curr->next==head)
+            {
+        
+
+                head = head->next;
+                tail->next = head;
+                cleanup(curr->next);
+            }
+            else if(curr->next == tail)
+            {
+
+                myth_Node * del = curr->next;
+                curr->next = head ;
+                tail = curr;
+                cleanup(del);
+            }
+            else
+            {
+                myth_Node * del = curr->next;
+                curr->next = curr->next->next;
+                del->next->prev = curr;
+                cleanup(del);
+            }
+        }
         if (curr->status == 1) {
             temp = curr->next;
+            
             return curr;
         }
         curr = curr->next;
@@ -181,11 +218,13 @@ int scheduler()
         }
         else
         {
-            myth_Node * tnode = checkRunable();  
-            if(mainFirst)
+            myth_Node * tnode = checkRunable();
+            
+            if(mainFirst == 1)
             {
+                
                 free(head->next);
-                mainFirst = 0;
+                mainFirst ++;
                 tid--;
                 tail = head;
                 head->next = head;
@@ -194,7 +233,6 @@ int scheduler()
             begin_timer();
             swapcontext(&sch_ctx, &tnode->context); //timer int //1st isme current ctx save kardenga
         }
-        // printf("before sig handler\n"); //sahi
     }
     return 0;
 }
@@ -206,7 +244,6 @@ void thread_exit()
     curr->status = -1;
     release(curr->lk);
     scheduler();
-    // futex_wake(&curr->status, 1);
 }
 
 myth_Node * findNodeTid(int tid)
@@ -215,7 +252,6 @@ myth_Node * findNodeTid(int tid)
     do
     {
         if(t->tid == tid)
-            // printf()
             return t;
         t = t->next;
     } while (t!=head);
@@ -231,7 +267,6 @@ void handleSignal(myth_Node * curt, int signal)
         curt->status = -1;
         release(curt->lk);
         if(curt == curr) {
-            // end_timer();
             swapcontext(&curt->context, &sch_ctx);
         }
     }
@@ -243,13 +278,11 @@ void handleSignal(myth_Node * curt, int signal)
     }
     else if(signal == SIGSTOP)
     {
-        // printf("sigstop\n");
         acquire(curt->lk);
         curt->status = 2;  //sigstop
         release(curt->lk);
         if(curt == curr)   //schedule next
         {   
-            // end_timer();
             swapcontext(&curt->context, &sch_ctx);
         }
     }
@@ -262,7 +295,6 @@ int thread_kill(int tid, int signal)
     if( signal==SIGTERM || signal==SIGKILL || signal==SIGCONT || signal==SIGSTOP)
     {  
         if(!curr) {
-            // printf("df\n");
             return -1;
         }
         if(curr->tid == tid)
@@ -272,19 +304,38 @@ int thread_kill(int tid, int signal)
         }
         else
         {
-            // printf("sahi\n");
             myth_Node * sig_node =  findNodeTid(tid);
             if(!sig_node) {
-                // printf("sig_node not found\n");
                 return -1;
             }
-            // end_timer();
             handleSignal(sig_node, signal);
         }
         return 0;
     }
-    // printf("Dffv\n");
     return -1;
+}
+
+int thread_cancel(int tid)
+{   
+    if(!curr) {
+        return -1;
+    }
+    if(curr->tid == tid)
+    {   
+        printf("curr node pe cancel\n");
+        end_timer();
+        curr->status = 3;
+        swapcontext(&curr->context, &sch_ctx);
+    }
+    else
+    {
+        myth_Node * sig_node =  findNodeTid(tid);
+        if(!sig_node) {
+            return -1;
+        }
+        sig_node->status = 3; // cleanup status
+    }
+    return 0;
 }
 
 int thread_join(int tid) {

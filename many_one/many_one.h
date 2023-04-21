@@ -41,3 +41,4 @@ void sig_alarm_handler(int sig);
 int thread_kill(int tid, int signal);
 void thread_mutex_lock(struct spinlock * mk);
 void thread_mutex_unlock(struct spinlock * mk);
+int thread_cancel(int tid);
