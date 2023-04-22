@@ -1,9 +1,4 @@
-// kernel thread isme?
-
 #include "many_one.h"
-
-
-
 int tid = 0;
 int isFirst = 0;
 int mainFirst = 1;
@@ -231,11 +226,12 @@ int scheduler()
     return 0;
 }
 
-void thread_exit()
+void thread_exit(void * retptr)
 {   
     end_timer();
     acquire(curr->lk);
     curr->status = -1;
+    curr->retval = retptr;
     release(curr->lk);
     scheduler();
 }
@@ -332,14 +328,19 @@ int thread_cancel(int tid)
     return 0;
 }
 
-int thread_join(int tid) {
+int thread_join(int tid,void ** value_ptr) {
+
     while (1)
     {
         myth_Node *tp = findNodeTid(tid);
         if(tp->status == -1) {
+            if (value_ptr != NULL) {
+                *value_ptr = tp->retval;
+            }
             return 0;
         }
     }
+    return -1;
 }
 
 void thread_mutex_lock(struct spinlock * mk)

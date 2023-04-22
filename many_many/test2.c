@@ -14,12 +14,12 @@ struct spinlock mk;
 void *f1(void *arg) {
     int p = *(int *)arg;
     printf("args recieved thread1 running\n");
-    for(int i=0;i<1000000;i++)
+    for(int i=0;i<100000;i++)
     {
         
     }
     printf("thread1 exiting\n");
-    thread_exit();
+    thread_exit(0);
 }
 
 void *f2(void *arg) {
@@ -28,18 +28,18 @@ void *f2(void *arg) {
     {
     }
     printf("thread2 exiting\n");
-    thread_exit();
+    thread_exit(0);
 }
 
 void *f3(void *arg) {
     printf("thread3 running\n");
-    for(int i=0;i<10000;i++)
+    for(int i=0;i<100000;i++)
     {
 
     }
     printf("thread3 exiting\n");
 
-    thread_exit();
+    thread_exit(0);
 }
 
 void *f4(void *arg) {
@@ -50,7 +50,7 @@ void *f4(void *arg) {
     
     printf("thread4 exiting\n");
 
-    thread_exit();
+    thread_exit(0);
 }
 
 void *f5(void *arg) {
@@ -60,8 +60,8 @@ void *f5(void *arg) {
     }
 
     printf("thread5 exiting\n");
-
-    thread_exit();
+    thread_kill(3, SIGCONT);
+    thread_exit(0);
 }
 
 void * main() {
@@ -78,21 +78,13 @@ void * main() {
     thread_create(&tid5, f5, NULL);
     
     thread_kill(tid4, SIGTERM);
-    for(int i=0; i<200000; i++) {
+    thread_kill(tid3, SIGSTOP); 
 
-    }
-    
-    thread_kill(tid1, SIGSTOP);
-    for(int i=0; i<10000; i++) {
-
-    }
-    thread_kill(tid1, SIGCONT);
-    
-    thread_join(tid1);  
-    thread_join(tid2);
-    thread_join(tid3); 
-    thread_join(tid4);  
-    thread_join(tid5);  
+    thread_join(tid1, NULL);  
+    thread_join(tid2, NULL);
+    thread_join(tid3, NULL); 
+    thread_join(tid4, NULL);  
+    thread_join(tid5, NULL);  
     
     printf("Done\n");
     return NULL;

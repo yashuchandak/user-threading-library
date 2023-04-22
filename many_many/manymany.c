@@ -28,15 +28,6 @@ void begin_timer(int i)
     setitimer(ITIMER_REAL, &timer[i], NULL);
 }
 
-void begin_art_timer(int i)
-{
-    timer[i].it_value.tv_sec = 0;
-    timer[i].it_value.tv_usec = 0; 
-    timer[i].it_interval.tv_sec = 5;
-    timer[i].it_interval.tv_usec = 0;
-    setitimer(ITIMER_REAL, &timer[i], NULL);
-}
-
 void end_timer(int i)
 {
     timer[i].it_value.tv_sec = 0;
@@ -118,13 +109,14 @@ void append(myth_Node * Node)
 
 
 
-void thread_exit()
+void thread_exit(void *retptr)
 {
     end_timer(findNodekTid(gettid())->tid);   
     myth_Node * exit_node = findNodekTid(gettid());
     acquire(exit_node->lk);
     exit_node->status = -1;
     exit_node->ktid = -1;
+    exit_node->retval = retptr;
     release(exit_node->lk);
     setcontext(&sch_ctx);
 }
@@ -194,11 +186,16 @@ myth_Node * findNodeTid(int tid)
     return NULL;
 }
 
-int thread_join(int tid) {
+int thread_join(int tid, void **retptr) {
     while (1)
     {
         myth_Node *tp = findNodeTid(tid);
         if(tp->status == -1) {
+            if(retptr!=NULL)
+            {
+                *retptr = tp->retval;
+            }
+            
             return 0;
         }
     }
@@ -217,7 +214,7 @@ void handleSignal(myth_Node * curt, int signal, int isCurrRunning)
             exit_node->status = -1;
             exit_node->ktid = -1;
             release(exit_node->lk);
-            tgkill(getpid(), temp, SIGALRM);
+            tgkill(temp, temp, SIGALRM);
         }
         else
         {
@@ -228,6 +225,8 @@ void handleSignal(myth_Node * curt, int signal, int isCurrRunning)
     }
     else if(signal == SIGCONT)
     {
+        if(curt->status==-1)
+            return ;
         acquire(curt->lk);
         curt->status = 1;
         release(curt->lk);
@@ -235,11 +234,13 @@ void handleSignal(myth_Node * curt, int signal, int isCurrRunning)
     else if(signal == SIGSTOP)
     {
         acquire(curt->lk);
+        if(curt->status==-1)
+            return ;
         curt->status = 2;  //sigstop
         release(curt->lk);
         if(isCurrRunning)   //schedule next
         {   
-            tgkill(getpid(),curt->ktid, SIGALRM);
+            tgkill(curt->ktid,curt->ktid, SIGALRM);
         }
     }
     
@@ -341,8 +342,6 @@ int thread_kill(int tid, int signal)
         {
             handleSignal(kill_node,signal,0);
         }
-        
-
         return 0;
     }
     return -1;
@@ -364,6 +363,6 @@ int thread_cancel(int tid)
     acquire(can_thr->lk);
     can_thr->status = 3;
     release(can_thr->lk);
-    tgkill(getpid(),can_thr->ktid,SIGALRM);
+    tgkill(can_thr->ktid,can_thr->ktid,SIGALRM);
     return 0;
 }

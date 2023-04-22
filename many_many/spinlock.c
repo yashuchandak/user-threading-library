@@ -7,6 +7,7 @@ typedef struct myth_Node{
   void *args;
   int status;
   int timer;
+  void * retval;
   void *(*f)(void *);
   ucontext_t context;
   struct spinlock * lk;

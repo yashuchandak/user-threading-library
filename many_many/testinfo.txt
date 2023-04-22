@@ -1,0 +1,5 @@
+test1.c : This file test thread_create, thread_exit, thread_join, timer interrupts and scheduler for a many many threading library.
+test2.c : This file tests the thread_kill for manymany thread mapping.
+test3.c : This file tests the mutexlocks for manymany thread mapping.
+
+factorial.c : Testing for calculation of factorial using threads.

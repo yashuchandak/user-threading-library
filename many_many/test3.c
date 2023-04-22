@@ -14,45 +14,45 @@ int z = 0, z1 = 0, z2 = 0;
 struct spinlock mk;
 
 void *f1(void *arg) {
-    for(int i=0;i<10000;i++)
+    for(int i=0;i<45000;i++)
     {
         thread_mutex_lock(&mk);
         x++;
         thread_mutex_unlock(&mk);
         x1++;
     }
-    thread_exit();
+    thread_exit(0);
 }
 
 void *f2(void *arg) {
-    for(int i=0;i<10000;i++)
+    for(int i=0;i<45000;i++)
     {
         thread_mutex_lock(&mk);
         x++;
         thread_mutex_unlock(&mk);
         x2++;
     }
-    thread_exit();
+    thread_exit(0);
 }
 
 void *f3(void *arg) {
-    for(int i=0;i<10000;i++)
+    for(int i=0;i<45000;i++)
     {
         z++;
         z1++;
     }
-    thread_exit();
+    thread_exit(0);
 }
 
 
 
 void *f4(void *arg) {
-    for(int i=0; i<10000; i++) 
+    for(int i=0; i<45000; i++) 
     {
        z++;
        z2++;
     }
-    thread_exit();
+    thread_exit(0);
 }
 
 void * main() {
@@ -65,10 +65,10 @@ void * main() {
     thread_create(&tid4, f4, NULL);
 
     
-    thread_join(tid1);  
-    thread_join(tid2);
-    thread_join(tid3); 
-    thread_join(tid4); 
+    thread_join(tid1,NULL);  
+    thread_join(tid2,NULL);
+    thread_join(tid3,NULL); 
+    thread_join(tid4,NULL); 
     
     printf("With mutex lock\n");
     printf("x = %d ; x1 = %d ; x2 = %d ; x1+x2 = %d\n", x, x1, x2, x1+x2); 
