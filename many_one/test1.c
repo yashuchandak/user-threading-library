@@ -81,5 +81,7 @@ void * main() {
     thread_join(tid4,NULL);  
     thread_join(tid5,NULL);  
     
+
+    
     return NULL;
 }
